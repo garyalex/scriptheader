@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+# Version: v0.3
 # Copyright 2016 
 # Author: Gary Alexander garyalex@gmail.com github.com/garyalex
 #
@@ -20,6 +21,7 @@
 use 5.014;
 use warnings;
 use Getopt::Long;
+use File::Copy "cp";
 
 # DEFAULTS
 my $set=0;
@@ -33,14 +35,14 @@ my $debug=0;
 
 GetOptions(
   'set' => \$set,
-  'show:s' => \$show,
-  'author' => \$author,
-  'version:s' => \$version,
-  'summary' => \$summary,
+  'show=s' => \$show,
+  'author=s' => \$author,
+  'version=s' => \$version,
+  'summary=s' => \$summary,
   'file=s' => \$file,
   'help' => \$help,
   'debug' => \$debug,
-) or print usage();
+) or die usage();
 
 if ( $help ) {
   print usage();
@@ -50,23 +52,30 @@ if ( $help ) {
 if ( $set ) {
   # Read-write
   if ( $author ne "" ) {
+    print "Author lines: ".fieldexists("Author")."\n";
     if ( fieldexists("Author") eq 0 ) {
       my $insertion = insertfield("Author",$author);
+    } else {
+      my $replacement = replacefield("Author",$author);
     }
-    print "Author lines: ".fieldexists("Author")."\n";
   }
   if ( $version ne "" ) { 
+    print "Version lines: ".fieldexists("Version")."\n";
     if ( fieldexists("Version") eq 0 ) {
       my $insertion = insertfield("Version",$version);
+    } else {
+      my $replacement = replacefield("Version",$version);
     }
-    print "Version lines: ".fieldexists("Version")."\n";
   }
   if ( $summary ne "" ) { 
     print "Summary lines: ".fieldexists("Summary")."\n";
+    if ( fieldexists("Summary") eq 0 ) {
+      my $insertion = insertfield("Summary",$summary);
+    } else {
+      my $replacement = replacefield("Summary",$summary);
+    }
   }
-} 
-
-if ( $show ne "" ) {
+} else {
   # Read only
   if ( $show =~ /all/i ) { 
     print grepfile("Author");
@@ -75,9 +84,7 @@ if ( $show ne "" ) {
   } else { 
     print grepfile($show);
   }
-} else {
-  print "Please use --show=all (or version/author/summary)\n"
-}
+} 
 
 if ( $debug ) {
   # DEBUG
@@ -125,6 +132,7 @@ sub insertfield {
   my $fieldname = shift;
   my $content = shift;
   open( my $fh, '<', $file ) or die "Can't open $file: $!";
+  cp( $file, "$file.new") or die "Copy failed to $file.new: $!";
   open( my $fho, '>', "$file.new" ) or die "Can't write $file.new: $!";
   while( <$fh> ) {
     if ( $. == 2) {
@@ -137,7 +145,25 @@ sub insertfield {
   return 0;
 }
 
+sub replacefield {
+  my $fieldname = shift;
+  my $content = shift;
+  open( my $fh, '<', $file ) or die "Can't open $file: $!";
+  cp( $file, "$file.new") or die "Copy failed to $file.new: $!";
+  open( my $fho, '>', "$file.new" ) or die "Can't write $file.new: $!";
+  while( <$fh> ) {
+    if ( $_ =~ /^\# $fieldname/i ) {
+      print $fho "# $fieldname: $content\n";
+    } else {
+      print $fho $_;
+    }
+  }
+  close $fh;
+  close $fho;
+  return 0;
+}
+
 sub usage {
-  my $usagemessage="Usage: $0 --set [ --author=\"Author\" | --version=\"0.1\" | --summary=\"Summary\" ] --file=filename \nUsage: $0 [ --author | --version | --summary ] --file=filename\n";
+  my $usagemessage="Usage: $0 --set [ --author=\"AB\" | --version=\"0.1\" | --summary=\"Summ\" ] --file=file \nUsage: $0 --show=(all|author|version|summary) --file=filename\n";
   return $usagemessage;
 }

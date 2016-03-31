@@ -5,3 +5,4 @@ echo "Enter to continue..."
 read NULL
 sudo perl -MCPAN -e shell
 sudo perl -MCPAN -e "install 'Getopt::Long'"
+sudo perl -MCPAN -e "install 'File::Copy'"
