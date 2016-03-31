@@ -1,4 +1,5 @@
 #!/usr/bin/env perl
+# Version: v0.1
 # Copyright 2016 
 # Author: Gary Alexander garyalex@gmail.com github.com/garyalex
 #
@@ -26,16 +27,14 @@ my $set=0;
 my $author="";
 my $version="";
 my $summary="";
-my $show="all";
 my $file="";
 my $help=0;
 my $debug=0;
 
 GetOptions(
   'set' => \$set,
-  'show:s' => \$show,
   'author' => \$author,
-  'version:s' => \$version,
+  'version=s' => \$version,
   'summary' => \$summary,
   'file=s' => \$file,
   'help' => \$help,
@@ -64,26 +63,23 @@ if ( $set ) {
   if ( $summary ne "" ) { 
     print "Summary lines: ".fieldexists("Summary")."\n";
   }
-} 
-
-if ( $show ne "" ) {
-  # Read only
-  if ( $show =~ /all/i ) { 
-    print grepfile("Author");
-    print grepfile("Summary");
-    print grepfile("Version");
-  } else { 
-    print grepfile($show);
-  }
 } else {
-  print "Please use --show=all (or version/author/summary)\n"
+  # Read only
+  if ( $author eq "1" ) { 
+    print grepfile("Author");
+  }
+  if ( $version eq "1" ) { 
+    print grepfile("Version");
+  }
+  if ( $summary eq "1" ) { 
+    print grepfile("Summary");
+  }
 }
 
 if ( $debug ) {
   # DEBUG
   print "\n#DEBUG\n";
   print "Set:     $set\n";
-  print "Show:    $show\n";
   print "Author:  $author\n";
   print "Version: $version\n";
   print "Summary: $summary\n";
